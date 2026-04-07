@@ -1,10 +1,5 @@
 import { z } from 'zod';
-import {
-  ReportReason,
-  ReportStatus,
-  ModerationAction,
-  UserStatus,
-} from '@pasteking/types';
+import { ReportReason, ReportStatus, ModerationAction, UserStatus } from '@pasteking/types';
 
 // ─── Report schemas ──────────────────────────────────────────────────────────
 
@@ -55,12 +50,26 @@ export type ModerationActionSchema = z.infer<typeof moderationActionSchema>;
 // ─── User status schemas ─────────────────────────────────────────────────────
 
 export const updateUserStatusSchema = z.object({
-  status: z.enum([
-    UserStatus.ACTIVE,
-    UserStatus.RESTRICTED,
-    UserStatus.SUSPENDED,
-  ]),
+  status: z.enum([UserStatus.ACTIVE, UserStatus.RESTRICTED, UserStatus.SUSPENDED]),
   reason: z.string().max(2000).optional(),
 });
 
 export type UpdateUserStatusSchema = z.infer<typeof updateUserStatusSchema>;
+
+// ─── SEO Settings schema ─────────────────────────────────────────────────────
+
+export const updateSeoSettingsSchema = z.object({
+  seoTitle: z.string().max(200).nullable().optional(),
+  seoDescription: z.string().max(500).nullable().optional(),
+  seoKeywords: z.string().max(1000).nullable().optional(),
+  seoAuthor: z.string().max(200).nullable().optional(),
+  seoCanonicalUrl: z.string().url().max(500).nullable().optional(),
+  ogImageUrl: z.string().max(2000).nullable().optional(),
+  twitterHandle: z.string().max(100).nullable().optional(),
+  facebookAppId: z.string().max(100).nullable().optional(),
+  siteSchemaType: z.string().max(100).optional(),
+  robotsIndex: z.boolean().optional(),
+  robotsFollow: z.boolean().optional(),
+});
+
+export type UpdateSeoSettingsSchema = z.infer<typeof updateSeoSettingsSchema>;

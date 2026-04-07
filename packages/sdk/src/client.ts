@@ -44,6 +44,7 @@ import type {
   CheckoutSessionResponse,
   PortalSessionResponse,
   AdminBillingSummary,
+  SeoSettingsResponse,
 } from '@pasteking/types';
 
 export class ApiError extends Error {
@@ -637,5 +638,11 @@ export class PasteKingClient {
 
   async adminGetWorkspaceBilling(workspaceId: string): Promise<ApiResponse<AdminBillingSummary>> {
     return this.request(`/v1/billing/admin/workspaces/${encodeURIComponent(workspaceId)}`);
+  }
+
+  // ─── SEO (public) ──────────────────────────────────────────────────────
+
+  async getSeoSettings(): Promise<ApiResponse<SeoSettingsResponse>> {
+    return this.request('/v1/settings/seo');
   }
 }

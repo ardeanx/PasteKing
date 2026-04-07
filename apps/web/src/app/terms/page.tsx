@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export const metadata = { title: 'Terms of Service — PasteKing' };
 
 export default function TermsPage() {
@@ -119,9 +121,9 @@ export default function TermsPage() {
           </h2>
           <p>
             Your use of the Service is also governed by our{' '}
-            <a href="/privacy" style={{ color: 'var(--accent)' }}>
+            <Link href="/privacy" style={{ color: 'var(--accent)' }}>
               Privacy Policy
-            </a>
+            </Link>
             . Encrypted pastes are stored as ciphertext; PasteKing cannot read their plaintext
             content.
           </p>
@@ -168,9 +170,9 @@ export default function TermsPage() {
           </h2>
           <p>
             For questions about these terms, please visit our{' '}
-            <a href="/contact" style={{ color: 'var(--accent)' }}>
+            <Link href="/contact" style={{ color: 'var(--accent)' }}>
               Contact page
-            </a>
+            </Link>
             .
           </p>
         </section>

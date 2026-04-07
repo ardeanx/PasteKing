@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { createServerApi } from '@/lib/api';
@@ -68,9 +69,9 @@ export default async function AdminAbuseFlagsPage() {
                 {flag.pasteId && (
                   <span>
                     paste:{' '}
-                    <a href={`/p/${flag.pasteId}`} style={{ color: 'var(--accent)' }}>
+                    <Link href={`/p/${flag.pasteId}`} style={{ color: 'var(--accent)' }}>
                       {flag.pasteId.slice(0, 8)}…
-                    </a>
+                    </Link>
                   </span>
                 )}
                 {flag.userId && <span>user: {(flag.userId as string).slice(0, 8)}…</span>}

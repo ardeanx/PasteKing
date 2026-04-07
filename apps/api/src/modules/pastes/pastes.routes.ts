@@ -23,6 +23,7 @@ import {
   getUserAnalytics,
   getRevisionDiff,
   listRecentPublic,
+  listSitemapEntries,
 } from './pastes.controller';
 
 export const pastesRouter: IRouter = Router();
@@ -38,6 +39,9 @@ pastesRouter.get('/search', searchPastes);
 
 // Recent public pastes (no search query needed)
 pastesRouter.get('/recent', listRecentPublic);
+
+// Sitemap feed (public paste IDs for sitemap generation)
+pastesRouter.get('/sitemap-feed', listSitemapEntries);
 
 // Personal search (authenticated, user's own pastes)
 pastesRouter.get('/search/mine', requireAuth, searchMyPastes);

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
+import Link from 'next/link';
 import { PasteMode, PasteVisibility } from '@pasteking/types';
 import hljs from 'highlight.js';
 import { LANGUAGES } from './languages';
@@ -130,9 +131,9 @@ export function HomePasteForm({ isLoggedIn }: { isLoggedIn: boolean }) {
           </button>
         </div>
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-          <a href={`/p/${result.id}`} className="btn-primary">
+          <Link href={`/p/${result.id}`} className="btn-primary">
             View Paste
-          </a>
+          </Link>
           <button onClick={() => setResult(null)} className="btn-secondary">
             Create Another
           </button>
@@ -393,8 +394,8 @@ export function HomePasteForm({ isLoggedIn }: { isLoggedIn: boolean }) {
 
       {!isLoggedIn && (
         <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 12 }}>
-          <a href="/login">Sign in</a> for encryption, burn-after-read, expiration, private pastes,
-          and more.
+          <Link href="/login">Sign in</Link> for encryption, burn-after-read, expiration, private
+          pastes, and more.
         </p>
       )}
     </form>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { createPasteSchema, scanForSecrets } from '@pasteking/validation';
 import type { SecretWarning } from '@pasteking/types';
@@ -276,12 +277,12 @@ export default function NewPastePage() {
           )}
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <a href={`/p/${createdId}`} className="btn-primary">
+          <Link href={`/p/${createdId}`} className="btn-primary">
             View Paste
-          </a>
-          <a href="/new" className="btn-secondary">
+          </Link>
+          <Link href="/new" className="btn-secondary">
             Create Another
-          </a>
+          </Link>
         </div>
       </div>
     );

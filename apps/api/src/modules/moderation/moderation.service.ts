@@ -557,6 +557,36 @@ export class ModerationService {
       excessivePasteRateWindowMs: s.excessivePasteRateWindowMs,
       excessivePasteRateMax: s.excessivePasteRateMax,
       repeatedReportThreshold: s.repeatedReportThreshold,
+      seoTitle: s.seoTitle,
+      seoDescription: s.seoDescription,
+      seoKeywords: s.seoKeywords,
+      seoAuthor: s.seoAuthor,
+      seoCanonicalUrl: s.seoCanonicalUrl,
+      ogImageUrl: s.ogImageUrl,
+      twitterHandle: s.twitterHandle,
+      facebookAppId: s.facebookAppId,
+      siteSchemaType: s.siteSchemaType,
+      robotsIndex: s.robotsIndex,
+      robotsFollow: s.robotsFollow,
+    };
+  }
+
+  async getSeoSettings() {
+    const s = await this.repo.getSiteSettings();
+    return {
+      seoTitle: s.seoTitle,
+      seoDescription: s.seoDescription,
+      seoKeywords: s.seoKeywords,
+      seoAuthor: s.seoAuthor,
+      seoCanonicalUrl: s.seoCanonicalUrl,
+      ogImageUrl: s.ogImageUrl,
+      twitterHandle: s.twitterHandle,
+      facebookAppId: s.facebookAppId,
+      siteSchemaType: s.siteSchemaType,
+      robotsIndex: s.robotsIndex,
+      robotsFollow: s.robotsFollow,
+      logoUrl: s.logoUrl,
+      faviconUrl: s.faviconUrl,
     };
   }
 
@@ -567,6 +597,17 @@ export class ModerationService {
     excessivePasteRateWindowMs?: number;
     excessivePasteRateMax?: number;
     repeatedReportThreshold?: number;
+    seoTitle?: string | null;
+    seoDescription?: string | null;
+    seoKeywords?: string | null;
+    seoAuthor?: string | null;
+    seoCanonicalUrl?: string | null;
+    ogImageUrl?: string | null;
+    twitterHandle?: string | null;
+    facebookAppId?: string | null;
+    siteSchemaType?: string;
+    robotsIndex?: boolean;
+    robotsFollow?: boolean;
   }) {
     const s = await this.repo.updateSiteSettings(data);
     return {
@@ -576,6 +617,17 @@ export class ModerationService {
       excessivePasteRateWindowMs: s.excessivePasteRateWindowMs,
       excessivePasteRateMax: s.excessivePasteRateMax,
       repeatedReportThreshold: s.repeatedReportThreshold,
+      seoTitle: s.seoTitle,
+      seoDescription: s.seoDescription,
+      seoKeywords: s.seoKeywords,
+      seoAuthor: s.seoAuthor,
+      seoCanonicalUrl: s.seoCanonicalUrl,
+      ogImageUrl: s.ogImageUrl,
+      twitterHandle: s.twitterHandle,
+      facebookAppId: s.facebookAppId,
+      siteSchemaType: s.siteSchemaType,
+      robotsIndex: s.robotsIndex,
+      robotsFollow: s.robotsFollow,
     };
   }
 }

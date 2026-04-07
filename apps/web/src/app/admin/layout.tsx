@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createServerApi } from '@/lib/api';
 import { ApiError } from '@pasteking/sdk';
@@ -46,15 +47,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             { href: '/admin/flags', label: 'Abuse Flags' },
             { href: '/admin/audit-logs', label: 'Audit Logs' },
             { href: '/admin/settings', label: 'Settings' },
+            { href: '/admin/seo', label: 'SEO' },
           ].map((link) => (
-            <a
+            <Link
               key={link.href}
               href={link.href}
               className="btn-ghost"
               style={{ fontSize: 13, textDecoration: 'none', padding: '4px 10px' }}
             >
               {link.label}
-            </a>
+            </Link>
           ))}
         </nav>
       </div>

@@ -485,3 +485,35 @@ export interface AdminBillingSummary {
   cancelAtPeriodEnd: boolean;
   currentPeriodEnd: string | null;
 }
+
+// ─── SEO DTOs ────────────────────────────────────────────────────────────────
+
+export interface SeoSettingsResponse {
+  seoTitle: string | null;
+  seoDescription: string | null;
+  seoKeywords: string | null;
+  seoAuthor: string | null;
+  seoCanonicalUrl: string | null;
+  ogImageUrl: string | null;
+  twitterHandle: string | null;
+  facebookAppId: string | null;
+  siteSchemaType: string;
+  robotsIndex: boolean;
+  robotsFollow: boolean;
+  logoUrl: string | null;
+  faviconUrl: string | null;
+}
+
+export interface UpdateSeoSettingsInput {
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  seoKeywords?: string | null;
+  seoAuthor?: string | null;
+  seoCanonicalUrl?: string | null;
+  ogImageUrl?: string | null;
+  twitterHandle?: string | null;
+  facebookAppId?: string | null;
+  siteSchemaType?: string;
+  robotsIndex?: boolean;
+  robotsFollow?: boolean;
+}

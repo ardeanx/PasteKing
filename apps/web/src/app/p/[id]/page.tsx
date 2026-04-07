@@ -1,3 +1,5 @@
+import type { Metadata } from 'next';
+import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { ApiError } from '@pasteking/sdk';
@@ -13,6 +15,37 @@ const API_URL = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:4000';
 
 interface PastePageProps {
   params: Promise<{ id: string }>;
+}
+
+export async function generateMetadata({ params }: PastePageProps): Promise<Metadata> {
+  const { id } = await params;
+  try {
+    const client = createServerApi();
+    const { data: paste } = await client.getPaste(id);
+    const title = paste.title || 'Untitled Paste';
+    const description = paste.encrypted
+      ? 'This paste is encrypted'
+      : (paste.content ?? '').slice(0, 160).replace(/\n/g, ' ') || 'View this paste on PasteKing';
+
+    return {
+      title,
+      description,
+      openGraph: {
+        title,
+        description,
+        type: 'article',
+        ...(paste.createdAt && { publishedTime: paste.createdAt }),
+      },
+      twitter: {
+        card: 'summary',
+        title,
+        description,
+      },
+      robots: paste.encrypted ? { index: false, follow: false } : undefined,
+    };
+  } catch {
+    return { title: 'Paste Not Found' };
+  }
 }
 
 export default async function PastePage({ params }: PastePageProps) {
@@ -193,9 +226,9 @@ export default async function PastePage({ params }: PastePageProps) {
       {paste.forkedFromId && (
         <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 12 }}>
           Forked from{' '}
-          <a href={`/p/${paste.forkedFromId}`} style={{ color: 'var(--accent)' }}>
+          <Link href={`/p/${paste.forkedFromId}`} style={{ color: 'var(--accent)' }}>
             {paste.forkedFromId}
-          </a>
+          </Link>
         </div>
       )}
 

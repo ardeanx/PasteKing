@@ -345,6 +345,22 @@ export async function listRecentPublic(
   }
 }
 
+export async function listSitemapEntries(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const limit =
+      typeof req.query['limit'] === 'string' ? Math.min(Number(req.query['limit']), 5000) : 1000;
+    const offset = typeof req.query['offset'] === 'string' ? Number(req.query['offset']) : 0;
+    const entries = await service.listSitemapEntries(limit, offset);
+    res.json({ success: true, data: entries });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function searchMyPastes(
   req: Request,
   res: Response,

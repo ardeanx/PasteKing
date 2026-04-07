@@ -343,6 +343,17 @@ export class ModerationRepository {
     excessivePasteRateWindowMs?: number;
     excessivePasteRateMax?: number;
     repeatedReportThreshold?: number;
+    seoTitle?: string | null;
+    seoDescription?: string | null;
+    seoKeywords?: string | null;
+    seoAuthor?: string | null;
+    seoCanonicalUrl?: string | null;
+    ogImageUrl?: string | null;
+    twitterHandle?: string | null;
+    facebookAppId?: string | null;
+    siteSchemaType?: string;
+    robotsIndex?: boolean;
+    robotsFollow?: boolean;
   }) {
     return prisma.siteSettings.upsert({
       where: { id: 'default' },

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export default function RegisterPage() {
@@ -176,9 +177,9 @@ export default function RegisterPage() {
 
         <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--muted)', marginTop: 18 }}>
           Already have an account?{' '}
-          <a href="/login" style={{ color: 'var(--accent)' }}>
+          <Link href="/login" style={{ color: 'var(--accent)' }}>
             Sign in
-          </a>
+          </Link>
         </p>
       </div>
     </div>

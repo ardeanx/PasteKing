@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
@@ -148,9 +149,9 @@ export default function LoginPage() {
 
         <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--muted)', marginTop: 18 }}>
           Don&apos;t have an account?{' '}
-          <a href="/register" style={{ color: 'var(--accent)' }}>
+          <Link href="/register" style={{ color: 'var(--accent)' }}>
             Create one
-          </a>
+          </Link>
         </p>
       </div>
     </div>

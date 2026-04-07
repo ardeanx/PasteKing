@@ -237,6 +237,22 @@ export class PastesRepository {
     return results as unknown as PasteWithContent[];
   }
 
+  async listSitemapEntries(limit = 1000, offset = 0) {
+    return prisma.paste.findMany({
+      where: {
+        status: 'ACTIVE',
+        visibility: 'PUBLIC',
+        moderationStatus: 'NONE',
+        burnAfterRead: false,
+        encrypted: false,
+      },
+      select: { id: true, updatedAt: true },
+      orderBy: { updatedAt: 'desc' },
+      take: limit,
+      skip: offset,
+    });
+  }
+
   async countViews(pasteId: string): Promise<number> {
     return prisma.pasteView.count({ where: { pasteId } });
   }

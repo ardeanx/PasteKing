@@ -401,6 +401,10 @@ export class PastesService {
     }));
   }
 
+  async listSitemapEntries(limit = 1000, offset = 0) {
+    return this.repository.listSitemapEntries(limit, offset);
+  }
+
   async searchPastes(query: string, limit = 20, offset = 0): Promise<SearchResultItem[]> {
     if (!query.trim()) return [];
     const results = await this.repository.searchPublic(query, Math.min(limit, 50), offset);

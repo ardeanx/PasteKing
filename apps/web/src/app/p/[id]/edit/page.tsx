@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { updatePasteSchema } from '@pasteking/validation';
 
@@ -107,9 +108,9 @@ export default function EditPastePage() {
         >
           {error}
         </div>
-        <a href={`/p/${params.id}`} style={{ fontSize: 13, color: 'var(--muted)' }}>
+        <Link href={`/p/${params.id}`} style={{ fontSize: 13, color: 'var(--muted)' }}>
           &larr; Back to paste
-        </a>
+        </Link>
       </div>
     );
   }

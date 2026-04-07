@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export const metadata = { title: 'Cookie Policy — PasteKing' };
 
 export default function CookiesPage() {
@@ -116,9 +118,9 @@ export default function CookiesPage() {
           </h2>
           <p>
             For questions about our cookie practices, please visit our{' '}
-            <a href="/contact" style={{ color: 'var(--accent)' }}>
+            <Link href="/contact" style={{ color: 'var(--accent)' }}>
               Contact page
-            </a>
+            </Link>
             .
           </p>
         </section>

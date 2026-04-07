@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
@@ -306,9 +307,9 @@ export function AdminPasteSearch() {
               {results.map((paste) => (
                 <tr key={paste.id} style={{ borderBottom: '1px solid var(--border)' }}>
                   <td style={{ padding: '8px 12px' }}>
-                    <a href={`/p/${paste.id}`} style={{ fontWeight: 500, color: 'var(--fg)' }}>
+                    <Link href={`/p/${paste.id}`} style={{ fontWeight: 500, color: 'var(--fg)' }}>
                       {paste.title ?? paste.id.slice(0, 10) + '…'}
-                    </a>
+                    </Link>
                     {paste.language && (
                       <span style={{ fontSize: 11, color: 'var(--muted)', marginLeft: 6 }}>
                         {paste.language}

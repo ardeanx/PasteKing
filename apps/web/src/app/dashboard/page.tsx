@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { createServerApi } from '@/lib/api';
@@ -66,9 +67,9 @@ export default async function DashboardPage() {
           <p style={{ color: 'var(--muted)', marginBottom: 16 }}>
             You haven&apos;t created any pastes yet.
           </p>
-          <a href="/new" className="btn-primary">
+          <Link href="/new" className="btn-primary">
             Create Your First Paste
-          </a>
+          </Link>
         </div>
       ) : (
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>

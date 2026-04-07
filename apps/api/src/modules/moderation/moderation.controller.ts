@@ -222,6 +222,21 @@ export async function getPublicBranding(
   }
 }
 
+// ─── Public: SEO Settings ──────────────────────────────────────────────
+
+export async function getPublicSeoSettings(
+  _req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const seo = await service.getSeoSettings();
+    res.json({ success: true, data: seo });
+  } catch (err) {
+    next(err);
+  }
+}
+
 // ─── Admin: Site Settings ──────────────────────────────────────────────
 
 export async function getSiteSettings(

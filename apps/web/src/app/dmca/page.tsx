@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export const metadata = { title: 'DMCA Policy — PasteKing' };
 
 export default function DmcaPage() {
@@ -63,13 +65,13 @@ export default function DmcaPage() {
           </h2>
           <p>
             Send your DMCA takedown notice through our{' '}
-            <a href="/contact" style={{ color: 'var(--accent)' }}>
+            <Link href="/contact" style={{ color: 'var(--accent)' }}>
               Contact page
-            </a>{' '}
+            </Link>{' '}
             with the subject &quot;DMCA Takedown Request&quot;, or use the{' '}
-            <a href="/report-abuse" style={{ color: 'var(--accent)' }}>
+            <Link href="/report-abuse" style={{ color: 'var(--accent)' }}>
               Report Abuse
-            </a>{' '}
+            </Link>{' '}
             page and select &quot;Copyright / Sensitive Material&quot; as the reason.
           </p>
         </section>

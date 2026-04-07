@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
@@ -63,9 +64,9 @@ export default function ReportAbusePage() {
       <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Report Abuse</h1>
       <p style={{ color: 'var(--muted)', fontSize: 14, marginBottom: 24 }}>
         If you&apos;ve found content on PasteKing that violates our{' '}
-        <a href="/terms" style={{ color: 'var(--accent)' }}>
+        <Link href="/terms" style={{ color: 'var(--accent)' }}>
           Terms of Service
-        </a>
+        </Link>
         , please report it below. You must be logged in to submit a report.
       </p>
 
@@ -154,16 +155,16 @@ export default function ReportAbusePage() {
       <div style={{ marginTop: 24, fontSize: 13, color: 'var(--muted)' }}>
         <p>
           For DMCA takedown requests, please see our{' '}
-          <a href="/dmca" style={{ color: 'var(--accent)' }}>
+          <Link href="/dmca" style={{ color: 'var(--accent)' }}>
             DMCA Policy
-          </a>
+          </Link>
           .
         </p>
         <p style={{ marginTop: 4 }}>
           For other inquiries, visit our{' '}
-          <a href="/contact" style={{ color: 'var(--accent)' }}>
+          <Link href="/contact" style={{ color: 'var(--accent)' }}>
             Contact page
-          </a>
+          </Link>
           .
         </p>
       </div>

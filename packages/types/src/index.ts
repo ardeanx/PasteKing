@@ -73,4 +73,6 @@ export type {
   PortalSessionResponse,
   QuotaErrorDetail,
   AdminBillingSummary,
+  SeoSettingsResponse,
+  UpdateSeoSettingsInput,
 } from './dto';

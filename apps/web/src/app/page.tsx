@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { cookies } from 'next/headers';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
@@ -109,9 +110,9 @@ export default async function HomePage() {
 
         {!isLoggedIn && (
           <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 14 }}>
-            <a href="/login" style={{ color: 'var(--accent)' }}>
+            <Link href="/login" style={{ color: 'var(--accent)' }}>
               Sign in
-            </a>{' '}
+            </Link>{' '}
             for encryption, burn-after-read, expiration, private pastes, and more.
           </p>
         )}
@@ -128,9 +129,9 @@ export default async function HomePage() {
           }}
         >
           <h2 style={{ fontSize: 18, fontWeight: 700 }}>Recent Public Pastes</h2>
-          <a href="/search" style={{ fontSize: 13, color: 'var(--accent)' }}>
+          <Link href="/search" style={{ fontSize: 13, color: 'var(--accent)' }}>
             View all →
-          </a>
+          </Link>
         </div>
 
         {recentPastes.length === 0 ? (
@@ -139,9 +140,9 @@ export default async function HomePage() {
             style={{ padding: 32, textAlign: 'center', color: 'var(--muted)', fontSize: 14 }}
           >
             No public pastes yet. Be the first to{' '}
-            <a href="/new" style={{ color: 'var(--accent)' }}>
+            <Link href="/new" style={{ color: 'var(--accent)' }}>
               create one
-            </a>
+            </Link>
             .
           </div>
         ) : (

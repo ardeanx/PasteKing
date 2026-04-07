@@ -464,6 +464,20 @@ model SiteSettings {
   excessivePasteRateWindowMs Int     @default(300000) @map("excessive_paste_rate_window_ms")
   excessivePasteRateMax      Int     @default(30) @map("excessive_paste_rate_max")
   repeatedReportThreshold    Int     @default(5) @map("repeated_report_threshold")
+
+  // ─── SEO Settings ─────────────────────────────────────────────────────
+  seoTitle                   String? @map("seo_title")
+  seoDescription             String? @map("seo_description")
+  seoKeywords                String? @map("seo_keywords")
+  seoAuthor                  String? @map("seo_author")
+  seoCanonicalUrl            String? @map("seo_canonical_url")
+  ogImageUrl                 String? @map("og_image_url")
+  twitterHandle              String? @map("twitter_handle")
+  facebookAppId              String? @map("facebook_app_id")
+  siteSchemaType             String  @default("WebApplication") @map("site_schema_type")
+  robotsIndex                Boolean @default(true) @map("robots_index")
+  robotsFollow               Boolean @default(true) @map("robots_follow")
+
   updatedAt                  DateTime @updatedAt @map("updated_at")
 
   @@map("site_settings")

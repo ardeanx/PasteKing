@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 
 export default function ContactPage() {
   const [name, setName] = useState('');
@@ -122,18 +123,18 @@ export default function ContactPage() {
         <div className="card" style={{ padding: 20 }}>
           <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Quick Links</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13 }}>
-            <a href="/report-abuse" style={{ color: 'var(--accent)' }}>
+            <Link href="/report-abuse" style={{ color: 'var(--accent)' }}>
               Report abusive content →
-            </a>
-            <a href="/dmca" style={{ color: 'var(--accent)' }}>
+            </Link>
+            <Link href="/dmca" style={{ color: 'var(--accent)' }}>
               DMCA takedown requests →
-            </a>
-            <a href="/terms" style={{ color: 'var(--accent)' }}>
+            </Link>
+            <Link href="/terms" style={{ color: 'var(--accent)' }}>
               Terms of Service →
-            </a>
-            <a href="/privacy" style={{ color: 'var(--accent)' }}>
+            </Link>
+            <Link href="/privacy" style={{ color: 'var(--accent)' }}>
               Privacy Policy →
-            </a>
+            </Link>
           </div>
         </div>
       </div>

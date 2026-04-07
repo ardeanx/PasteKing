@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { createServerApi } from '@/lib/api';
@@ -145,9 +146,9 @@ export default async function AdminReportsPage({
                 )}
                 <span>
                   · paste:{' '}
-                  <a href={`/p/${report.pasteId}`} style={{ color: 'var(--accent)' }}>
+                  <Link href={`/p/${report.pasteId}`} style={{ color: 'var(--accent)' }}>
                     {report.pasteId.slice(0, 8)}…
-                  </a>
+                  </Link>
                 </span>
               </div>
 

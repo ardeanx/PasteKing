@@ -1,14 +1,95 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { createServerApi } from '@/lib/api';
+import { MobileNav } from './mobile-nav';
+import { ProgressBar } from './progress-bar';
 import './globals.css';
 
-export const metadata: Metadata = {
-  title: 'PasteKing',
-  description: 'Share code snippets, text, and logs with ease',
+const API_URL = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:4000';
+
+interface SeoData {
+  seoTitle: string | null;
+  seoDescription: string | null;
+  seoKeywords: string | null;
+  seoAuthor: string | null;
+  seoCanonicalUrl: string | null;
+  ogImageUrl: string | null;
+  twitterHandle: string | null;
+  facebookAppId: string | null;
+  siteSchemaType: string | null;
+  robotsIndex: boolean;
+  robotsFollow: boolean;
+  logoUrl: string | null;
+  faviconUrl: string | null;
+}
+
+const seoDefaults: SeoData = {
+  seoTitle: null,
+  seoDescription: null,
+  seoKeywords: null,
+  seoAuthor: null,
+  seoCanonicalUrl: null,
+  ogImageUrl: null,
+  twitterHandle: null,
+  facebookAppId: null,
+  siteSchemaType: 'WebApplication',
+  robotsIndex: true,
+  robotsFollow: true,
+  logoUrl: null,
+  faviconUrl: null,
 };
 
-const API_URL = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:4000';
+async function getSeoData(): Promise<SeoData> {
+  try {
+    const res = await fetch(`${API_URL}/v1/settings/seo`, { next: { revalidate: 60 } });
+    if (!res.ok) return seoDefaults;
+    const body = await res.json();
+    return { ...seoDefaults, ...body.data };
+  } catch {
+    return seoDefaults;
+  }
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSeoData();
+  const title = seo.seoTitle || 'PasteKing';
+  const description = seo.seoDescription || 'Share code snippets, text, and logs with ease';
+  const robots = {
+    index: seo.robotsIndex,
+    follow: seo.robotsFollow,
+  };
+
+  const metadata: Metadata = {
+    title: { default: title, template: `%s - ${title}` },
+    description,
+    robots,
+    ...(seo.seoKeywords && { keywords: seo.seoKeywords.split(',').map((k) => k.trim()) }),
+    ...(seo.seoAuthor && { authors: [{ name: seo.seoAuthor }] }),
+    ...(seo.seoCanonicalUrl && { metadataBase: new URL(seo.seoCanonicalUrl) }),
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      siteName: title,
+      ...(seo.ogImageUrl && { images: [{ url: seo.ogImageUrl, width: 1200, height: 630 }] }),
+      ...(seo.seoCanonicalUrl && { url: seo.seoCanonicalUrl }),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      ...(seo.twitterHandle && { site: seo.twitterHandle, creator: seo.twitterHandle }),
+      ...(seo.ogImageUrl && { images: [seo.ogImageUrl] }),
+    },
+    ...(seo.facebookAppId && {
+      facebook: { appId: seo.facebookAppId },
+    }),
+    icons: seo.faviconUrl ? { icon: seo.faviconUrl } : undefined,
+  };
+
+  return metadata;
+}
 
 async function getBranding(): Promise<{ logoUrl: string | null; faviconUrl: string | null }> {
   try {
@@ -89,7 +170,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const session = cookieStore.get('pasteking_session');
   const isLoggedIn = !!session?.value;
 
-  const branding = await getBranding();
+  const [branding, seo] = await Promise.all([getBranding(), getSeoData()]);
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': seo.siteSchemaType || 'WebApplication',
+    name: seo.seoTitle || 'PasteKing',
+    description: seo.seoDescription || 'Share code snippets, text, and logs with ease',
+    ...(seo.seoCanonicalUrl && { url: seo.seoCanonicalUrl }),
+    ...(seo.ogImageUrl && { image: seo.ogImageUrl }),
+    ...(seo.seoAuthor && { author: { '@type': 'Organization', name: seo.seoAuthor } }),
+    applicationCategory: 'DeveloperApplication',
+    operatingSystem: 'All',
+  };
 
   let isAdmin = false;
   let username = '';
@@ -107,13 +200,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   if (isLoggedIn) {
     return (
       <html lang="en">
-        <head>{branding.faviconUrl && <link rel="icon" href={branding.faviconUrl} />}</head>
+        <head>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          />
+        </head>
         <body>
+          <ProgressBar />
+          <MobileNav />
           <div className="app-shell">
             {/* ── Sidebar ─────────────────────────────────────── */}
             <aside className="app-sidebar">
               <div style={{ padding: '20px 16px 12px' }}>
-                <a
+                <Link
                   href="/"
                   style={{
                     display: 'flex',
@@ -125,7 +225,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 >
                   <SiteLogo logoUrl={branding.logoUrl} size={32} />
                   <span style={{ fontSize: 16, fontWeight: 700 }}>PasteKing</span>
-                </a>
+                </Link>
               </div>
 
               <div style={{ padding: '8px 12px' }}>
@@ -155,15 +255,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   >
                     Main
                   </p>
-                  <a href="/" className="sidebar-link">
+                  <Link href="/" className="sidebar-link">
                     <Icon d={icons.home} size={16} /> Home
-                  </a>
-                  <a href="/dashboard" className="sidebar-link">
+                  </Link>
+                  <Link href="/dashboard" className="sidebar-link">
                     <Icon d={icons.paste} size={16} /> My Pastes
-                  </a>
-                  <a href="/search" className="sidebar-link">
+                  </Link>
+                  <Link href="/search" className="sidebar-link">
                     <Icon d={icons.search} size={16} /> Search
-                  </a>
+                  </Link>
                 </div>
 
                 <div style={{ marginBottom: 24 }}>
@@ -180,9 +280,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   >
                     Workspace
                   </p>
-                  <a href="/workspaces" className="sidebar-link">
+                  <Link href="/workspaces" className="sidebar-link">
                     <Icon d={icons.workspace} size={16} /> Workspaces
-                  </a>
+                  </Link>
                 </div>
 
                 <div style={{ marginBottom: 24 }}>
@@ -199,15 +299,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   >
                     Account
                   </p>
-                  <a href="/tokens" className="sidebar-link">
+                  <Link href="/tokens" className="sidebar-link">
                     <Icon d={icons.key} size={16} /> API Tokens
-                  </a>
-                  <a href="/profile" className="sidebar-link">
+                  </Link>
+                  <Link href="/profile" className="sidebar-link">
                     <Icon d={icons.workspace} size={16} /> Profile
-                  </a>
-                  <a href="/billing" className="sidebar-link">
+                  </Link>
+                  <Link href="/billing" className="sidebar-link">
                     <Icon d={icons.billing} size={16} /> Billing
-                  </a>
+                  </Link>
                 </div>
 
                 {isAdmin && (
@@ -225,44 +325,51 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     >
                       Admin
                     </p>
-                    <a href="/admin" className="sidebar-link" style={{ color: 'var(--accent)' }}>
+                    <Link href="/admin" className="sidebar-link" style={{ color: 'var(--accent)' }}>
                       <Icon d={icons.admin} size={16} /> Reports
-                    </a>
-                    <a
+                    </Link>
+                    <Link
                       href="/admin/pastes"
                       className="sidebar-link"
                       style={{ color: 'var(--accent)' }}
                     >
                       <Icon d={icons.paste} size={16} /> Manage Pastes
-                    </a>
-                    <a
+                    </Link>
+                    <Link
                       href="/admin/users"
                       className="sidebar-link"
                       style={{ color: 'var(--accent)' }}
                     >
                       <Icon d={icons.workspace} size={16} /> Manage Users
-                    </a>
-                    <a
+                    </Link>
+                    <Link
                       href="/admin/flags"
                       className="sidebar-link"
                       style={{ color: 'var(--accent)' }}
                     >
                       <Icon d={icons.search} size={16} /> Abuse Flags
-                    </a>
-                    <a
+                    </Link>
+                    <Link
                       href="/admin/audit-logs"
                       className="sidebar-link"
                       style={{ color: 'var(--accent)' }}
                     >
                       <Icon d={icons.key} size={16} /> Audit Logs
-                    </a>
-                    <a
+                    </Link>
+                    <Link
                       href="/admin/settings"
                       className="sidebar-link"
                       style={{ color: 'var(--accent)' }}
                     >
                       <Icon d={icons.billing} size={16} /> Settings
-                    </a>
+                    </Link>
+                    <Link
+                      href="/admin/seo"
+                      className="sidebar-link"
+                      style={{ color: 'var(--accent)' }}
+                    >
+                      <Icon d={icons.search} size={16} /> SEO
+                    </Link>
                   </div>
                 )}
               </nav>
@@ -325,8 +432,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // ── Guest layout (no sidebar) ─────────────────────────────────────
   return (
     <html lang="en">
-      <head>{branding.faviconUrl && <link rel="icon" href={branding.faviconUrl} />}</head>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body>
+        <ProgressBar />
         <div className="app-full">
           <header style={{ borderBottom: '1px solid var(--border)', padding: '14px 24px' }}>
             <nav
@@ -338,7 +451,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 justifyContent: 'space-between',
               }}
             >
-              <a
+              <Link
                 href="/"
                 style={{
                   display: 'flex',
@@ -350,11 +463,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               >
                 <SiteLogo logoUrl={branding.logoUrl} size={32} />
                 <span style={{ fontSize: 18, fontWeight: 700 }}>PasteKing</span>
-              </a>
+              </Link>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <a href="/search" className="btn-ghost">
+                <Link href="/search" className="btn-ghost">
                   Search
-                </a>
+                </Link>
                 <a
                   href="/new"
                   target="_blank"
@@ -364,9 +477,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 >
                   New Paste
                 </a>
-                <a href="/login" className="btn-primary" style={{ fontSize: 13 }}>
+                <Link href="/login" className="btn-primary" style={{ fontSize: 13 }}>
                   Sign In
-                </a>
+                </Link>
               </div>
             </nav>
           </header>
@@ -395,24 +508,27 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             >
               <span>© {new Date().getFullYear()} PasteKing. All rights reserved.</span>
               <nav style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                <a href="/terms" style={{ color: 'var(--muted)', textDecoration: 'none' }}>
+                <Link href="/terms" style={{ color: 'var(--muted)', textDecoration: 'none' }}>
                   Terms
-                </a>
-                <a href="/privacy" style={{ color: 'var(--muted)', textDecoration: 'none' }}>
+                </Link>
+                <Link href="/privacy" style={{ color: 'var(--muted)', textDecoration: 'none' }}>
                   Privacy
-                </a>
-                <a href="/cookies" style={{ color: 'var(--muted)', textDecoration: 'none' }}>
+                </Link>
+                <Link href="/cookies" style={{ color: 'var(--muted)', textDecoration: 'none' }}>
                   Cookies
-                </a>
-                <a href="/dmca" style={{ color: 'var(--muted)', textDecoration: 'none' }}>
+                </Link>
+                <Link href="/dmca" style={{ color: 'var(--muted)', textDecoration: 'none' }}>
                   DMCA
-                </a>
-                <a href="/report-abuse" style={{ color: 'var(--muted)', textDecoration: 'none' }}>
+                </Link>
+                <Link
+                  href="/report-abuse"
+                  style={{ color: 'var(--muted)', textDecoration: 'none' }}
+                >
                   Report Abuse
-                </a>
-                <a href="/contact" style={{ color: 'var(--muted)', textDecoration: 'none' }}>
+                </Link>
+                <Link href="/contact" style={{ color: 'var(--muted)', textDecoration: 'none' }}>
                   Contact
-                </a>
+                </Link>
               </nav>
             </div>
           </footer>

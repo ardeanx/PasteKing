@@ -1,5 +1,7 @@
 # PasteKing
 
+![Banner](/assets/app.png)
+
 A fast, feature-rich paste-sharing platform for developers. Share code snippets, text notes, CLI logs, and Markdown documents with syntax highlighting, end-to-end encryption, workspace collaboration, and more.
 
 ## Architecture
@@ -74,20 +76,20 @@ Services start at:
 
 | Service    | URL                   |
 | ---------- | --------------------- |
-| **Web**    | http://localhost:3000 |
-| **API**    | http://localhost:4000 |
-| **MinIO**  | http://localhost:9001 |
+| **Web**    | <http://localhost:3000> |
+| **API**    | <http://localhost:4000> |
+| **MinIO**  | <http://localhost:9001> |
 | **Worker** | (background process)  |
 
 ### Demo Accounts (after seeding)
 
 | Email               | Password  | Role       |
 | ------------------- | --------- | ---------- |
-| admin@pasteking.dev | admin123  | ADMIN      |
-| demo@pasteking.dev  | demo1234  | USER       |
-| alice@example.com   | alice1234 | USER       |
-| bob@example.com     | bobsecure | USER       |
-| carol@example.com   | carol5678 | RESTRICTED |
+| <admin@pasteking.dev> | admin123  | ADMIN      |
+| <demo@pasteking.dev>  | demo1234  | USER       |
+| <alice@example.com>   | alice1234 | USER       |
+| <bob@example.com>     | bobsecure | USER       |
+| <carol@example.com>   | carol5678 | RESTRICTED |
 
 ## Available Commands
 
