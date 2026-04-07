@@ -1,0 +1,470 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Platform Roles & User Status ────────────────────────────────────────────
+
+enum PlatformRole {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  RESTRICTED
+  SUSPENDED
+}
+
+// ─── User ────────────────────────────────────────────────────────────────────
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  username     String       @unique
+  passwordHash String?      @map("password_hash")
+  avatarUrl    String?      @map("avatar_url")
+  platformRole PlatformRole @default(USER) @map("platform_role")
+  status       UserStatus   @default(ACTIVE)
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  // Billing
+  planId                 String             @default("free") @map("plan_id")
+  subscriptionStatus     SubscriptionStatus @default(FREE) @map("subscription_status")
+  stripeCustomerId       String?            @unique @map("stripe_customer_id")
+  stripeSubscriptionId   String?            @unique @map("stripe_subscription_id")
+  currentPeriodStart     DateTime?          @map("current_period_start")
+  currentPeriodEnd       DateTime?          @map("current_period_end")
+  cancelAtPeriodEnd      Boolean            @default(false) @map("cancel_at_period_end")
+
+  pastes                Paste[]
+  apiTokens             ApiToken[]
+  sessions              Session[]
+  reports               Report[]
+  ownedWorkspaces       Workspace[]        @relation("WorkspaceOwner")
+  workspaceMemberships  WorkspaceMember[]
+  sentInvites           WorkspaceInvite[]  @relation("InviteSender")
+  auditActions          WorkspaceAuditLog[]
+  moderationActions     ModerationAuditLog[] @relation("ModerationActor")
+  abuseFlags            AbuseFlag[]
+  oauthAccounts         OAuthAccount[]
+
+  @@map("users")
+}
+
+// ─── OAuth Account ───────────────────────────────────────────────────────────
+
+model OAuthAccount {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  provider   String   // github, google
+  providerId String   @map("provider_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerId])
+  @@index([userId])
+  @@map("oauth_accounts")
+}
+
+// ─── Session ─────────────────────────────────────────────────────────────────
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+// ─── Paste ───────────────────────────────────────────────────────────────────
+
+enum PasteMode {
+  CODE
+  TEXT
+  LOG
+  MARKDOWN
+}
+
+enum PasteVisibility {
+  PUBLIC
+  UNLISTED
+  PRIVATE
+}
+
+enum PasteStatus {
+  ACTIVE
+  EXPIRED
+  BURNED
+  DELETED
+}
+
+enum ModerationStatus {
+  NONE
+  PENDING_REVIEW
+  HIDDEN
+  DISABLED
+  REMOVED
+}
+
+model Paste {
+  id              String          @id @default(cuid())
+  title           String?
+  mode            PasteMode       @default(TEXT)
+  visibility      PasteVisibility @default(PUBLIC)
+  status          PasteStatus     @default(ACTIVE)
+  moderationStatus ModerationStatus @default(NONE) @map("moderation_status")
+  language        String?
+  encrypted         Boolean         @default(false)
+  encryptionIv      String?         @map("encryption_iv")
+  encryptionVersion Int?            @map("encryption_version")
+  burnAfterRead     Boolean         @default(false) @map("burn_after_read")
+  expiresAt       DateTime?       @map("expires_at")
+  currentRevision Int             @default(1) @map("current_revision")
+
+  // Direct content storage (starter phase)
+  // TODO: migrate content to object storage via packages/storage
+  content         String?
+
+  // Content reference for future object storage
+  contentRef      String?         @map("content_ref")
+
+  // Anonymous deletion token (hashed, only returned on creation)
+  deleteTokenHash String?         @unique @map("delete_token_hash")
+
+  // Admin deletion reason (shown to visitors when content is removed)
+  deleteReason    String?         @map("delete_reason")
+
+  authorId        String?         @map("author_id")
+  author          User?           @relation(fields: [authorId], references: [id])
+
+  workspaceId     String?         @map("workspace_id")
+  workspace       Workspace?      @relation(fields: [workspaceId], references: [id])
+
+  forkedFromId    String?         @map("forked_from_id")
+  forkedFrom      Paste?          @relation("PasteFork", fields: [forkedFromId], references: [id], onDelete: SetNull)
+  forks           Paste[]         @relation("PasteFork")
+
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  revisions       PasteRevision[]
+  reports         Report[]
+  abuseFlags      AbuseFlag[]
+  views           PasteView[]
+
+  @@index([status, expiresAt])
+  @@index([authorId])
+  @@index([visibility, status])
+  @@index([workspaceId])
+  @@index([moderationStatus])
+  @@index([forkedFromId])
+  @@map("pastes")
+}
+
+// ─── PasteView (Analytics) ───────────────────────────────────────────────────
+
+model PasteView {
+  id        String   @id @default(cuid())
+  pasteId   String   @map("paste_id")
+  ipHash    String?  @map("ip_hash") // hashed IP for privacy
+  createdAt DateTime @default(now()) @map("created_at")
+
+  paste     Paste    @relation(fields: [pasteId], references: [id], onDelete: Cascade)
+
+  @@index([pasteId, createdAt])
+  @@map("paste_views")
+}
+
+// ─── PasteRevision ───────────────────────────────────────────────────────────
+
+model PasteRevision {
+  id             String   @id @default(cuid())
+  pasteId        String   @map("paste_id")
+  revisionNumber Int      @map("revision_number")
+
+  // Direct content storage (starter phase)
+  content        String?
+
+  // Content reference for future object storage
+  contentRef     String?  @map("content_ref")
+  contentHash    String?  @map("content_hash")
+
+  editorId       String?  @map("editor_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  paste          Paste    @relation(fields: [pasteId], references: [id], onDelete: Cascade)
+
+  @@unique([pasteId, revisionNumber])
+  @@map("paste_revisions")
+}
+
+// ─── ApiToken ────────────────────────────────────────────────────────────────
+
+model ApiToken {
+  id         String    @id @default(cuid())
+  userId     String    @map("user_id")
+  name       String
+  prefix     String    // first 8 chars of token for identification
+  tokenHash  String    @unique @map("token_hash")
+  scopes     String[]  @default([])
+  lastUsedAt DateTime? @map("last_used_at")
+  revokedAt  DateTime? @map("revoked_at")
+  expiresAt  DateTime? @map("expires_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([prefix])
+  @@index([userId])
+  @@map("api_tokens")
+}
+
+// ─── Report ──────────────────────────────────────────────────────────────────
+
+enum ReportReason {
+  SPAM
+  MALWARE_OR_PHISHING
+  CREDENTIAL_OR_SECRET_EXPOSURE
+  ILLEGAL_OR_HARMFUL_CONTENT
+  HARASSMENT_OR_ABUSE
+  COPYRIGHT_OR_SENSITIVE_MATERIAL
+  OTHER
+}
+
+enum ReportStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED_NO_ACTION
+  RESOLVED_CONTENT_REMOVED
+  RESOLVED_USER_ACTION
+  REJECTED
+}
+
+model Report {
+  id          String       @id @default(cuid())
+  pasteId     String       @map("paste_id")
+  reporterId  String?      @map("reporter_id")
+  reason      ReportReason
+  description String?
+  status      ReportStatus @default(OPEN)
+  reviewedBy  String?      @map("reviewed_by")
+  reviewNote  String?      @map("review_note")
+  resolvedAt  DateTime?    @map("resolved_at")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  paste       Paste        @relation(fields: [pasteId], references: [id], onDelete: Cascade)
+  reporter    User?        @relation(fields: [reporterId], references: [id])
+
+  @@unique([pasteId, reporterId])
+  @@index([pasteId])
+  @@index([status])
+  @@map("reports")
+}
+
+// ─── Abuse Flag ──────────────────────────────────────────────────────────────
+
+enum AbuseFlagType {
+  SECRET_DETECTED
+  EXCESSIVE_PASTE_RATE
+  REPEATED_REPORTS
+  SPAM_HEURISTIC
+}
+
+model AbuseFlag {
+  id        String        @id @default(cuid())
+  type      AbuseFlagType
+  severity  String        @default("medium") // low, medium, high
+  pasteId   String?       @map("paste_id")
+  userId    String?       @map("user_id")
+  metadata  Json?
+  resolved  Boolean       @default(false)
+  createdAt DateTime      @default(now()) @map("created_at")
+
+  paste     Paste?        @relation(fields: [pasteId], references: [id], onDelete: Cascade)
+  user      User?         @relation(fields: [userId], references: [id])
+
+  @@index([type])
+  @@index([resolved])
+  @@index([pasteId])
+  @@index([userId])
+  @@map("abuse_flags")
+}
+
+// ─── Moderation Audit Log ────────────────────────────────────────────────────
+
+model ModerationAuditLog {
+  id          String   @id @default(cuid())
+  actorId     String   @map("actor_id")
+  action      String   // e.g. report.created, paste.hidden, user.suspended
+  entityType  String   @map("entity_type")  // report, paste, user, flag
+  entityId    String   @map("entity_id")
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  actor       User     @relation("ModerationActor", fields: [actorId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([actorId])
+  @@index([createdAt])
+  @@map("moderation_audit_logs")
+}
+
+// ─── Subscription Status ─────────────────────────────────────────────────────
+
+enum SubscriptionStatus {
+  FREE
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
+  UNPAID
+}
+
+// ─── Workspace ───────────────────────────────────────────────────────────────
+
+model Workspace {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  ownerId   String   @map("owner_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Billing
+  planId                 String             @default("free") @map("plan_id")
+  subscriptionStatus     SubscriptionStatus @default(FREE) @map("subscription_status")
+  stripeCustomerId       String?            @unique @map("stripe_customer_id")
+  stripeSubscriptionId   String?            @unique @map("stripe_subscription_id")
+  currentPeriodStart     DateTime?          @map("current_period_start")
+  currentPeriodEnd       DateTime?          @map("current_period_end")
+  cancelAtPeriodEnd      Boolean            @default(false) @map("cancel_at_period_end")
+
+  owner     User              @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  members   WorkspaceMember[]
+  invites   WorkspaceInvite[]
+  pastes    Paste[]
+  auditLogs WorkspaceAuditLog[]
+
+  @@index([ownerId])
+  @@map("workspaces")
+}
+
+// ─── WorkspaceMember ─────────────────────────────────────────────────────────
+
+enum WorkspaceRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+model WorkspaceMember {
+  id          String        @id @default(cuid())
+  workspaceId String        @map("workspace_id")
+  userId      String        @map("user_id")
+  role        WorkspaceRole @default(MEMBER)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@index([userId])
+  @@map("workspace_members")
+}
+
+// ─── WorkspaceInvite ─────────────────────────────────────────────────────────
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  REVOKED
+  EXPIRED
+}
+
+model WorkspaceInvite {
+  id          String       @id @default(cuid())
+  workspaceId String       @map("workspace_id")
+  email       String
+  role        WorkspaceRole @default(MEMBER)
+  status      InviteStatus @default(PENDING)
+  invitedBy   String       @map("invited_by")
+  expiresAt   DateTime     @map("expires_at")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  sender      User         @relation("InviteSender", fields: [invitedBy], references: [id])
+
+  @@index([workspaceId])
+  @@index([email])
+  @@map("workspace_invites")
+}
+
+// ─── WorkspaceAuditLog ───────────────────────────────────────────────────────
+
+model WorkspaceAuditLog {
+  id          String   @id @default(cuid())
+  workspaceId String   @map("workspace_id")
+  actorId     String   @map("actor_id")
+  action      String   // e.g. workspace.created, member.invited, paste.created
+  entityType  String?  @map("entity_type")  // e.g. workspace, member, invite, paste
+  entityId    String?  @map("entity_id")
+  metadata    Json?    // extra context (role changes, etc.)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  actor       User      @relation(fields: [actorId], references: [id])
+
+  @@index([workspaceId, createdAt])
+  @@index([actorId])
+  @@map("workspace_audit_logs")
+}
+
+// ─── Billing Event Log ───────────────────────────────────────────────────────
+
+model BillingEvent {
+  id              String   @id @default(cuid())
+  stripeEventId   String   @unique @map("stripe_event_id")
+  eventType       String   @map("event_type")       // e.g. checkout.session.completed
+  subjectType     String   @map("subject_type")     // user or workspace
+  subjectId       String?  @map("subject_id")       // user/workspace id
+  stripeCustomerId String? @map("stripe_customer_id")
+  metadata        Json?
+  processedAt     DateTime @default(now()) @map("processed_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([subjectType, subjectId])
+  @@index([stripeEventId])
+  @@index([createdAt])
+  @@map("billing_events")
+}
+
+// ─── Site Settings (single-row config) ───────────────────────────────────────
+
+model SiteSettings {
+  id                         String  @id @default("default")
+  logoUrl                    String? @map("logo_url")
+  faviconUrl                 String? @map("favicon_url")
+  secretScanThreshold        Int     @default(3) @map("secret_scan_threshold")
+  excessivePasteRateWindowMs Int     @default(300000) @map("excessive_paste_rate_window_ms")
+  excessivePasteRateMax      Int     @default(30) @map("excessive_paste_rate_max")
+  repeatedReportThreshold    Int     @default(5) @map("repeated_report_threshold")
+  updatedAt                  DateTime @updatedAt @map("updated_at")
+
+  @@map("site_settings")
+}

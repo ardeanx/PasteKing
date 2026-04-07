@@ -1,0 +1,1 @@
+export { processExpiration } from './expiration';

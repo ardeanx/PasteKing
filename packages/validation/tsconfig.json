@@ -1,0 +1,9 @@
+{
+  "extends": "@pasteking/config/tsconfig/node",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "types": []
+  },
+  "include": ["src"]
+}
