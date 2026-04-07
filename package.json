@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
+    "start": "turbo start --filter=@pasteking/api --filter=@pasteking/web --filter=@pasteking/worker",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
     "test": "turbo test",
